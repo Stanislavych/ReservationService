@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ReservationService.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using ReservationService.Domain.ValueObjects;
 
 namespace ReservationService.Infrastructure.Data.Configurations
 {
@@ -21,13 +19,13 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(20);
 
-            entity.Property(u => u.Email)
-                .IsRequired()
-                .HasMaxLength(50);
-
             entity.Property(u => u.PhoneNumber)
+                .HasConversion(
+                phone => phone.Number,
+                value => PhoneNumber.Create(value)
+                )
                 .IsRequired()
-                .HasMaxLength(20);
+                .HasMaxLength(30);
 
             entity.Property(u => u.Role)
                 .IsRequired()

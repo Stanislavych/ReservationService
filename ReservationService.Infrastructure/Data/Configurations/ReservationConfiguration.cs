@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ReservationService.Domain.Entities;
+using ReservationService.Domain.ValueObjects;
 
 namespace ReservationService.Infrastructure.Data.Configurations
 {
@@ -15,16 +16,23 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .HasMaxLength(50);
 
             entity.Property(r => r.GuestsCount)
+                .HasConversion(
+                count => count.Value,
+                value => GuestsCount.Create(value)
+                )
                 .IsRequired()
                 .HasColumnName("guests_count");
 
-            entity.Property(r => r.StartTime)
-                .IsRequired()
-                .HasColumnName("start_time");
+            entity.OwnsOne(r => r.ReservationTime, rt =>
+            {
+                rt.Property(t => t.Start)
+                .HasColumnName("start_time")
+                .IsRequired();
 
-            entity.Property(r => r.EndTime)
-                .IsRequired()
-                .HasColumnName("end_time");
+                rt.Property(t => t.End)
+                .HasColumnName("end_time")
+                .IsRequired();
+            });
 
             entity.Property(r => r.Wish)
                 .HasMaxLength(500);
@@ -44,7 +52,9 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .HasForeignKey(r => r.TableId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(r => new { r.TableId, r.StartTime });
+
+            entity.Property<DateTime>("start_time");
+            entity.HasIndex("TableId", "start_time");
 
             entity.ToTable(t => t.HasCheckConstraint("CK_Reservation_EndTime", "end_time > start_time"));
             entity.ToTable(t => t.HasCheckConstraint("CK_Reservation_GuestsCount", "guests_count > 0"));

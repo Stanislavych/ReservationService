@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ReservationService.Domain.Entities;
+using ReservationService.Domain.ValueObjects;
 
 namespace ReservationService.Infrastructure.Data.Configurations
 {
@@ -11,6 +12,10 @@ namespace ReservationService.Infrastructure.Data.Configurations
             entity.HasKey(t => t.Id);
 
             entity.Property(t => t.Number)
+                .HasConversion(
+                number=>number.Value,
+                value=>TableNumber.Create(value)
+                )
                 .IsRequired();
 
             entity.Property(t => t.Type)
@@ -22,8 +27,11 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .IsRequired();
 
             entity.Property(t => t.Capacity)
-                .IsRequired()
-                .HasDefaultValue(2);
+                .HasConversion(
+                capacity => capacity.Value,
+                value => Capacity.Create(value)
+                )
+                .IsRequired();
         }
     }
 }

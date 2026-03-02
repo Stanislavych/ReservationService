@@ -1,4 +1,5 @@
 ﻿using ReservationService.Domain.Enums;
+using ReservationService.Domain.ValueObjects;
 
 namespace ReservationService.Domain.Entities
 {
@@ -6,9 +7,8 @@ namespace ReservationService.Domain.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int GuestsCount { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public GuestsCount GuestsCount { get; set; } = null!;
+        public TimeRange ReservationTime { get; set; } = null!;
         public string Wish { get; set; } = string.Empty;
         public ReservationStatus Status { get; set; }
 
