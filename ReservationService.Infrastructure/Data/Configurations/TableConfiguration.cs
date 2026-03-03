@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ReservationService.Domain.Entities;
-using ReservationService.Domain.ValueObjects;
+using ReservationService.Domain.Tables;
+using ReservationService.Domain.Tables.ValueObjects;
 
 namespace ReservationService.Infrastructure.Data.Configurations
 {

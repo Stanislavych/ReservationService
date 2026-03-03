@@ -1,4 +1,4 @@
-﻿namespace ReservationService.Domain.ValueObjects
+﻿namespace ReservationService.Domain.Tables.ValueObjects
 {
     public record TableNumber
     {

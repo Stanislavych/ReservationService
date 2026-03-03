@@ -1,4 +1,4 @@
-﻿namespace ReservationService.Domain.ValueObjects
+﻿namespace ReservationService.Domain.Users.ValueObjects
 {
     public record PhoneNumber
     {

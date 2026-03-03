@@ -1,4 +1,4 @@
-﻿namespace ReservationService.Domain.ValueObjects
+﻿namespace ReservationService.Domain.Reservations.ValueObjects
 {
     public record GuestsCount
     {

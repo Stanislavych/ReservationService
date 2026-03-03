@@ -1,4 +1,4 @@
-﻿namespace ReservationService.Domain.Enums
+﻿namespace ReservationService.Domain.Tables.Enums
 {
     public enum TableType
     {

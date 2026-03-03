@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ReservationService.Domain.Entities;
+using ReservationService.Domain.Reservations;
+using ReservationService.Domain.Tables;
+using ReservationService.Domain.Users;
 using ReservationService.Infrastructure.Data.Configurations;
 
 namespace ReservationService.Infrastructure.Data
