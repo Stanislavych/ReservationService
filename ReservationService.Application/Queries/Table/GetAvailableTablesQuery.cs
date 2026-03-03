@@ -32,10 +32,11 @@ namespace ReservationService.Application.Queries.Table
                 var availableTables = await _tableRepository.GetAvailableTablesAsync(requestedTime, request.GuestsCount, cancellationToken);
 
                 return availableTables.Select(t => new TableDto(
-                    t.Number,
+                    t.Id,
+                    t.Number.Value,
                     t.Type,
                     t.Zone,
-                    t.Capacity
+                    t.Capacity.Value
                     ));
             }
 
