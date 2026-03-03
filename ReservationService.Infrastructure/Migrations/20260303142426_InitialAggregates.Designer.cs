@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReservationService.Infrastructure.Data;
@@ -11,9 +12,11 @@ using ReservationService.Infrastructure.Data;
 namespace ReservationService.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260303142426_InitialAggregates")]
+    partial class InitialAggregates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -146,13 +149,13 @@ namespace ReservationService.Infrastructure.Migrations
 
             modelBuilder.Entity("ReservationService.Domain.Reservations.Reservation", b =>
                 {
-                    b.HasOne("ReservationService.Domain.Tables.Table", null)
+                    b.HasOne("ReservationService.Domain.Reservations.Reservation", null)
                         .WithMany()
                         .HasForeignKey("TableId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ReservationService.Domain.Users.User", null)
+                    b.HasOne("ReservationService.Domain.Reservations.Reservation", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
