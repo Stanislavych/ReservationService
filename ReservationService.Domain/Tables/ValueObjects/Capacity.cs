@@ -16,7 +16,5 @@
 
             return new Capacity(value);
         }
-
-        public bool CanAccomodate(int guestsCount) => guestsCount <= Value;
     }
 }

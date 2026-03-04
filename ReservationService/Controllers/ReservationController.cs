@@ -23,5 +23,23 @@ namespace ReservationService.Controllers
 
             return Ok(result);
         }
+
+        [HttpPatch("{id}/confirm")]
+        public async Task<ActionResult<ReservationDto>> Confirm(int id)
+        {
+            var command = new ConfirmReservationCommand(id);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        [HttpPatch("{id}/cancel")]
+        public async Task<ActionResult<ReservationDto>> Cancel(int id)
+        {
+            var command = new CancelReservationCommand(id);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
     }
 }
