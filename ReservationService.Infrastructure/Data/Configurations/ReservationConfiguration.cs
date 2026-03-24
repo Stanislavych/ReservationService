@@ -67,7 +67,8 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.Property<DateTime>("start_time");
-            entity.HasIndex("TableId", "start_time");
+            entity.HasIndex("TableId", "start_time")
+                .IsUnique();
 
             entity.ToTable(t => t.HasCheckConstraint("CK_Reservation_EndTime", "end_time > start_time"));
             entity.ToTable(t => t.HasCheckConstraint("CK_Reservation_GuestsCount", "guests_count > 0"));
