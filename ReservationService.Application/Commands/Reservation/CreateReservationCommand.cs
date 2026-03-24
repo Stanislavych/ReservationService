@@ -39,7 +39,8 @@ namespace ReservationService.Application.Commands.Reservation
                     reservation.Wish,
                     reservation.Status.ToString(),
                     reservation.TableId,
-                    reservation.UserId
+                    reservation.UserId,
+                    reservation.Version
                     );
             }
         }

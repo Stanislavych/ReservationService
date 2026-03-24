@@ -17,6 +17,8 @@ namespace ReservationService.Domain.Reservations
         public int TableId { get; private set; }
         public int UserId { get; private set; }
 
+        public long Version { get; private set; } = 1;
+
         private Reservation()
         {
 
@@ -69,6 +71,11 @@ namespace ReservationService.Domain.Reservations
                 throw new InvalidOperationException("Only confirmed reservation can be complited");
 
             Status = ReservationStatus.Completed;
+        }
+
+        public void IncrementVersion()
+        {
+            Version++;
         }
     }
 }

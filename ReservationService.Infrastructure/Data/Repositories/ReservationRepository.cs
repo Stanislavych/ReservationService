@@ -22,5 +22,45 @@ namespace ReservationService.Infrastructure.Data.Repositories
                             timeRange.Start < r.ReservationTime.End,
                         cancellationToken);
         }
+
+        public async Task<bool> UpdateWithVersionAsync(Reservation reservation, long expectedVersion, CancellationToken cancellationToken = default)
+        {
+            var newVersion = expectedVersion + 1;
+
+            var sql = @"
+                UPDATE ""Reservations""
+                SET 
+                    ""Name"" = {0},
+                    ""GuestsCount"" = {1},
+                    ""ReservationStart"" = {2},
+                    ""ReservationEnd"" = {3},
+                    ""Wish"" = {4},
+                    ""Status"" = {5},
+                    ""Version"" = {6}
+                WHERE ""Id"" = {7} AND ""Version"" = {8}";
+
+            var parameters = new object[]
+            {
+                reservation.Name,
+                reservation.GuestsCount.Value,
+                reservation.ReservationTime.Start,
+                reservation.ReservationTime.End,
+                reservation.Wish ?? string.Empty,
+                reservation.Status.ToString(),
+                newVersion,
+                reservation.Id,
+                expectedVersion
+            };
+
+            var rowsAffected = await _context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+
+            if (rowsAffected > 0)
+            {
+                reservation.IncrementVersion();
+                return true;
+            }
+
+            return false;
+        }
     }
 }

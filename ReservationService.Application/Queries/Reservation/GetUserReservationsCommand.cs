@@ -27,7 +27,8 @@ namespace ReservationService.Application.Queries.Reservation
                     r.Wish,
                     r.Status.ToString(),
                     r.TableId,
-                    r.UserId
+                    r.UserId,
+                    r.Version
                     )).ToList();
             }
         }

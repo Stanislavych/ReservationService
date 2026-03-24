@@ -52,6 +52,10 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasColumnName("table_id");
 
+            entity.Property(r => r.Version)
+                .IsRequired()
+                .HasDefaultValue(1);
+
             entity.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(r => r.UserId)

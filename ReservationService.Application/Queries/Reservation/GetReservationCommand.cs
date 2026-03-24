@@ -26,7 +26,8 @@ namespace ReservationService.Application.Queries.Reservation
                     currentReservation.Wish,
                     currentReservation.Status.ToString(),
                     currentReservation.TableId, // можно расширить представление до TableInfoDto
-                    currentReservation.UserId   // можно расширить представление до UserInfoDto
+                    currentReservation.UserId,   // можно расширить представление до UserInfoDto
+                    currentReservation.Version
                 );
             }
         }

@@ -15,6 +15,7 @@ namespace ReservationService.Infrastructure
             services.AddDbContext<ApplicationDbContext>(opts => opts.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IReservationCreationService, ReservationCreationService>();
+            services.AddScoped<IReservationUpdateService, ReservationUpdateService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<ITableRepository, TableRepository>();
             services.AddScoped<IReservationRepository, ReservationRepository>();

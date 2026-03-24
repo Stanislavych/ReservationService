@@ -4,34 +4,28 @@ using ReservationService.Domain.Abstractions;
 
 namespace ReservationService.Application.Commands.Reservation
 {
-    public record ConfirmReservationCommand(int Id) : IRequest<ReservationDto>
+    public record ConfirmReservationCommand(int Id, long Version) : IRequest<ReservationDto>
     {
-        public class Handler(IReservationRepository reservationRepository, IUnitOfWork unitOfWork) 
+        public class Handler(IReservationUpdateService reservationUpdateService, IUnitOfWork unitOfWork) 
             : IRequestHandler<ConfirmReservationCommand, ReservationDto>
         {
             public async Task<ReservationDto> Handle(ConfirmReservationCommand request, CancellationToken cancellationToken)
             {
-                var currentReservation = await reservationRepository.GetByIdAsync(request.Id,cancellationToken);
-
-                if (currentReservation == null)
-                    throw new ArgumentException($"Reservation with id {request.Id} not found");
-
-                currentReservation.Confirm();
-
-                reservationRepository.Update(currentReservation);
+                var reservation = await reservationUpdateService.ConfirmAsync(request.Id, request.Version, cancellationToken);
 
                 await unitOfWork.SaveChangesAsync();
 
                 return new ReservationDto(
-                    currentReservation.Id,
-                    currentReservation.Name,
-                    currentReservation.GuestsCount.Value,
-                    currentReservation.ReservationTime.Start,
-                    currentReservation.ReservationTime.End,
-                    currentReservation.Wish,
-                    currentReservation.Status.ToString(),
-                    currentReservation.TableId,
-                    currentReservation.UserId
+                    reservation.Id,
+                    reservation.Name,
+                    reservation.GuestsCount.Value,
+                    reservation.ReservationTime.Start,
+                    reservation.ReservationTime.End,
+                    reservation.Wish,
+                    reservation.Status.ToString(),
+                    reservation.TableId,
+                    reservation.UserId,
+                    reservation.Version
                     );
             }
         }
