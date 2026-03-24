@@ -1,10 +1,9 @@
-﻿using ReservationService.Domain.Common;
-using ReservationService.Domain.Tables.Enums;
+﻿using ReservationService.Domain.Tables.Enums;
 using ReservationService.Domain.Tables.ValueObjects;
 
 namespace ReservationService.Domain.Tables
 {
-    public class Table : AggregateRoot
+    public class Table
     {
         public int Id { get; private set; }
         public TableNumber Number { get;private set; } = null!;

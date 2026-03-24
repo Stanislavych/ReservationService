@@ -1,4 +1,5 @@
 ﻿using ReservationService.Domain.Common;
+using ReservationService.Domain.Exceptions;
 using ReservationService.Domain.Reservations.Enums;
 using ReservationService.Domain.Reservations.ValueObjects;
 
@@ -21,21 +22,26 @@ namespace ReservationService.Domain.Reservations
 
         }
 
-        public static Reservation Create(string name, GuestsCount guestsCount, TimeRange timeRange, string wish, int tableId, int userId)
+        internal Reservation(string name, GuestsCount guestsCount, TimeRange timeRange, string wish, int tableId, int userId)
         {
+            if (guestsCount == null)
+                throw new DomainException("GuestsCount is required");
+            if (timeRange == null)
+                throw new DomainException("TimeRange is required");
             if (string.IsNullOrWhiteSpace(name))
-                throw new Exception("Name is required");
+                throw new DomainException("Name is required");
+            if (tableId <= 0)
+                throw new DomainException("TableId is required");
+            if (userId <= 0)
+                throw new DomainException("UserId is required");
 
-            return new Reservation
-            {
-                Name = name,
-                GuestsCount = guestsCount,
-                ReservationTime = timeRange,
-                Wish = wish ?? string.Empty,
-                TableId = tableId,
-                UserId = userId,
-                Status = ReservationStatus.PendingPayment
-            };
+            Name = name;
+            GuestsCount = guestsCount;
+            ReservationTime = timeRange;
+            Wish = wish ?? string.Empty;
+            TableId = tableId;
+            UserId = userId;
+            Status = ReservationStatus.PendingPayment;
         }
 
         public void Confirm()
@@ -51,7 +57,7 @@ namespace ReservationService.Domain.Reservations
             if (Status == ReservationStatus.Cancelled)
                 return;
 
-            if(Status == ReservationStatus.Completed)
+            if (Status == ReservationStatus.Completed)
                 throw new InvalidOperationException("Cannot cancel completed reservation");
 
             Status = ReservationStatus.Cancelled;

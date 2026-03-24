@@ -9,39 +9,37 @@ namespace ReservationService.Application.Commands.Reservation
     public record CreateReservationCommand(string Name, int GuestsCount, DateTime StartTime,
         DateTime EndTime, string Wish, int TableId, int UserId) : IRequest<ReservationDto>
     {
-        public class Handler(IReservationRepository reservationRepository, IReservationValidationService validationService, IUnitOfWork unitOfWork)
+        public class Handler(IReservationRepository reservationRepository, IUnitOfWork unitOfWork, IReservationCreationService _reservationCreationService)
             : IRequestHandler<CreateReservationCommand, ReservationDto>
         {
             public async Task<ReservationDto> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
             {
-                await validationService.ValidateAsync(request, cancellationToken);
-
                 var timeRange = TimeRange.Create(request.StartTime, request.EndTime);
                 var guestsCount = Domain.Reservations.ValueObjects.GuestsCount.Create(request.GuestsCount);
 
-                var reservation = Domain.Reservations.Reservation.Create(
+                var reservation = await _reservationCreationService.CreateAsync(
                     request.Name,
                     guestsCount,
                     timeRange,
                     request.Wish,
                     request.TableId,
-                    request.UserId
+                    request.UserId,
+                    cancellationToken
                     );
 
-               var createdReservation = await reservationRepository.AddAsync(reservation, cancellationToken);
-
-                await unitOfWork.SaveChangesAsync(cancellationToken);
+               await reservationRepository.AddAsync(reservation, cancellationToken);
+               await unitOfWork.SaveChangesAsync(cancellationToken);
 
                 return new ReservationDto(
-                    createdReservation.Id,
-                    createdReservation.Name,
-                    createdReservation.GuestsCount.Value,
-                    createdReservation.ReservationTime.Start,
-                    createdReservation.ReservationTime.End,
-                    createdReservation.Wish,
-                    createdReservation.Status.ToString(),
-                    createdReservation.TableId,
-                    createdReservation.UserId
+                    reservation.Id,
+                    reservation.Name,
+                    reservation.GuestsCount.Value,
+                    reservation.ReservationTime.Start,
+                    reservation.ReservationTime.End,
+                    reservation.Wish,
+                    reservation.Status.ToString(),
+                    reservation.TableId,
+                    reservation.UserId
                     );
             }
         }

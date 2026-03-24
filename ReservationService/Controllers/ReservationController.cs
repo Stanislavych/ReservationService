@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ReservationService.Application.Commands.Reservation;
 using ReservationService.Application.DTOs;
+using ReservationService.Application.Queries.Reservation;
 
 namespace ReservationService.Controllers
 {
@@ -38,6 +39,24 @@ namespace ReservationService.Controllers
         {
             var command = new CancelReservationCommand(id);
             var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/info")]
+        public async Task<ActionResult<ReservationDto>> GetById(int id)
+        {
+            var query = new GetReservationCommand(id);
+            var result = await _mediator.Send(query);
+
+            return Ok(result);
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<List<ReservationDto>>> GetByUserId(int userId)
+        {
+            var query = new GetUserReservationsCommand(userId);
+            var result = await _mediator.Send(query);
 
             return Ok(result);
         }
