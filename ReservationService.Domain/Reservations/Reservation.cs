@@ -1,4 +1,5 @@
 ﻿using ReservationService.Domain.Common;
+using ReservationService.Domain.Events;
 using ReservationService.Domain.Exceptions;
 using ReservationService.Domain.Reservations.Enums;
 using ReservationService.Domain.Reservations.ValueObjects;
@@ -44,6 +45,17 @@ namespace ReservationService.Domain.Reservations
             TableId = tableId;
             UserId = userId;
             Status = ReservationStatus.PendingPayment;
+
+            AddDomainEvent(new ReservationCreated(
+                Id,
+                Name,
+                GuestsCount.Value,
+                ReservationTime.Start,
+                ReservationTime.End,
+                Wish,
+                TableId,
+                UserId,
+                Status));
         }
 
         public void Confirm()
@@ -52,6 +64,8 @@ namespace ReservationService.Domain.Reservations
                 throw new InvalidOperationException("Can only confirm pending payment reservations");
 
             Status = ReservationStatus.Confirmed;
+
+            AddDomainEvent(new ReservationConfirmed(Id, DateTime.UtcNow, Status));
         }
 
         public void Cancel()
@@ -63,6 +77,8 @@ namespace ReservationService.Domain.Reservations
                 throw new InvalidOperationException("Cannot cancel completed reservation");
 
             Status = ReservationStatus.Cancelled;
+
+            AddDomainEvent(new ReservationCancelled(Id, DateTime.UtcNow, Status));
         }
 
         public void Complete()
@@ -71,6 +87,8 @@ namespace ReservationService.Domain.Reservations
                 throw new InvalidOperationException("Only confirmed reservation can be complited");
 
             Status = ReservationStatus.Completed;
+
+            AddDomainEvent(new ReservationCompleted(Id, DateTime.UtcNow, Status));
         }
 
         public void IncrementVersion()

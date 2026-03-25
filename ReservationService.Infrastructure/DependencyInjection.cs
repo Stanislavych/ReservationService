@@ -5,6 +5,7 @@ using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Services;
 using ReservationService.Infrastructure.Data;
 using ReservationService.Infrastructure.Data.Repositories;
+using ReservationService.Infrastructure.Services;
 
 namespace ReservationService.Infrastructure
 {
@@ -19,8 +20,11 @@ namespace ReservationService.Infrastructure
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<ITableRepository, TableRepository>();
             services.AddScoped<IReservationRepository, ReservationRepository>();
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
 
             services.AddScoped<IUnitOfWork,UnitOfWork>();
+
+            services.AddHostedService<OutboxPublisher>();
 
             return services;
         }
