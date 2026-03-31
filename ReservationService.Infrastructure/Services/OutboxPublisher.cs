@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using ReservationService.Domain.Abstractions;
+using ReservationService.Application.Interfaces;
 
 namespace ReservationService.Infrastructure.Services
 {
@@ -45,6 +46,7 @@ namespace ReservationService.Infrastructure.Services
 
             var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var messageBroker = scope.ServiceProvider.GetRequiredService<IMessageBroker>();
 
             var messages = await outboxRepository.GetUnpublishedMessagesAsync(_batchSize, cancellationToken);
 
@@ -57,16 +59,14 @@ namespace ReservationService.Infrastructure.Services
             {
                 try
                 {
-                    _logger.LogInformation("OUTBOX MESSAGE: EventType={EventType}, Payload={Payload}, CreatedAt={CreatedAt}",
-                        message.EventType, message.Payload, message.CreatedAt);
-
-                    //logic for rabbitMQ
+                    await messageBroker.PublishAsync(message.EventType, message.Payload, cancellationToken);
 
                     message.MarkAsPublished();
                     
                     await outboxRepository.UpdateAsync(message,cancellationToken);
 
-                    _logger.LogDebug("Marked message {MessageId} as published", message.Id);
+                    _logger.LogDebug("Published message {MessageId} of type {EventType}",
+                    message.Id, message.EventType);
                 }
                 catch (Exception ex)
                 {
