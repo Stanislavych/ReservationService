@@ -1,7 +1,7 @@
 ﻿using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ReservationService.Application.DTOs;
+using ReservationService.Application.Interfaces;
 using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Reservations.ValueObjects;
 
@@ -12,27 +12,28 @@ namespace ReservationService.Application.Queries.Table
         public class Handler : IRequestHandler<GetAvailableTablesQuery, IEnumerable<TableDto>>
         {
             private readonly ITableRepository _tableRepository;
-            private readonly IMemoryCache _memoryCache;
+            private readonly ICacheService _cacheService;
             private readonly ILogger<Handler> _logger;
             private readonly TimeSpan _defaultDuration = TimeSpan.FromHours(2);
             private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(2);
 
-            public Handler(ITableRepository tableRepository, IMemoryCache memoryCache, ILogger<Handler> logger)
+            public Handler(ITableRepository tableRepository, ICacheService cacheService, ILogger<Handler> logger)
             {
                 _tableRepository = tableRepository;
-                _memoryCache = memoryCache;
+                _cacheService = cacheService;
                 _logger = logger;
             }
 
             public async Task<IEnumerable<TableDto>> Handle(GetAvailableTablesQuery request, CancellationToken cancellationToken)
             {
                 var cacheKey = GetHashKey(request);
+                var cached = await _cacheService.GetAsync<IEnumerable<TableDto>>(cacheKey, cancellationToken);
 
-                if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<TableDto> cachedTables))
+                if (cached != null)
                 {
                     _logger.LogInformation("Cache hit for key: {CacheKey}", cacheKey);
 
-                    return cachedTables;
+                    return cached;
                 }
 
                 _logger.LogInformation("Cache miss for key: {CacheKey}", cacheKey);
@@ -62,11 +63,7 @@ namespace ReservationService.Application.Queries.Table
                     t.Capacity.Value
                     )).ToList();
 
-                _memoryCache.Set(cacheKey, result, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = _cacheDuration,
-                    Priority = CacheItemPriority.Normal
-                });
+                await _cacheService.SetAsync(cacheKey, result, _cacheDuration, cancellationToken);
 
                 _logger.LogInformation("📦 Cached result for key: {CacheKey} with TTL: {CacheDuration} minutes",
                     cacheKey, _cacheDuration.TotalMinutes);

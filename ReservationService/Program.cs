@@ -4,10 +4,9 @@ using ReservationService.Application;
 using ReservationService.Infrastructure;
 using ReservationService.Infrastructure.Consumers;
 using ReservationService.Infrastructure.Data;
+using ReservationService.Infrastructure.Data.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
@@ -15,16 +14,18 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+var rabbitMqSettings = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>();
+
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<ReservationCreatedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        cfg.Host(rabbitMqSettings.Host, "/", h =>
         {
-            h.Username("admin");
-            h.Password("admin");
+            h.Username(rabbitMqSettings.UserName);
+            h.Password(rabbitMqSettings.Password);
         });
 
         cfg.ReceiveEndpoint("reservation-created", e =>
@@ -40,7 +41,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    
+
     await dbContext.Database.MigrateAsync();
 }
 
