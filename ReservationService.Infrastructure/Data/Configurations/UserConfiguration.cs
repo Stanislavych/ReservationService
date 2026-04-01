@@ -31,7 +31,25 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(20);
 
+            entity.Property(u => u.Username)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(u => u.PasswordHash)
+                .IsRequired()
+                .HasMaxLength(100);
+
             entity.HasIndex(u => u.PhoneNumber)
+                .IsUnique();
+
+            entity.HasIndex(u => u.Username)
+                .IsUnique();
+
+            entity.HasIndex(u => u.Email)
                 .IsUnique();
         }
     }

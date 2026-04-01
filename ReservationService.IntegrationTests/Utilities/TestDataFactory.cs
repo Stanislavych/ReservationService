@@ -1,10 +1,12 @@
-﻿using ReservationService.Application.Commands.Reservation;
+﻿using MassTransit.Saga;
+using ReservationService.Application.Commands.Reservation;
 using ReservationService.Domain.Reservations.ValueObjects;
 using ReservationService.Domain.Tables;
 using ReservationService.Domain.Tables.Enums;
 using ReservationService.Domain.Tables.ValueObjects;
 using ReservationService.Domain.Users;
 using ReservationService.Domain.Users.ValueObjects;
+using System.ComponentModel.DataAnnotations;
 
 namespace ReservationService.IntegrationTests.Utilities
 {
@@ -19,11 +21,15 @@ namespace ReservationService.IntegrationTests.Utilities
                 Capacity.Create(capacity));
         }
 
-        public static User CreateUser(int id = 1, string firstName = "Test", string lastName = "User")
+        public static User CreateUser(string firstName = "Test", string lastName = "User", string username = "Test",
+            string password = "test", string email = "test")
         {
             return User.Create(
                 firstName,
                 lastName,
+                username,
+                email,
+                password,
                 PhoneNumber.Create("+79161234567"),
                 "Customer");
         }
