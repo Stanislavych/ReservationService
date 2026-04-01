@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ReservationService.Application.Interfaces;
 using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Services;
 using ReservationService.Infrastructure.Data;
-using ReservationService.Infrastructure.Data.Configurations;
 using ReservationService.Infrastructure.Data.Repositories;
 using ReservationService.Infrastructure.Services;
 
@@ -26,12 +24,6 @@ namespace ReservationService.Infrastructure
             services.AddScoped<IUnitOfWork,UnitOfWork>();
 
             services.AddHostedService<OutboxPublisher>();
-            services.AddHostedService<ReservationEventConsumer>();
-
-            services.AddSingleton<RabbitMqConnection>();
-            services.AddSingleton<IMessageBroker, RabbitMqMessageBroker>();
-
-            services.Configure<RabbitMqSettings>(configuration.GetSection("RabbitMQ"));
 
             return services;
         }

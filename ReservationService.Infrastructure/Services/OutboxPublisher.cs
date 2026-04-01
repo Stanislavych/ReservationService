@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using ReservationService.Domain.Abstractions;
-using ReservationService.Application.Interfaces;
+using System.Text.Json;
+using MassTransit;
 
 namespace ReservationService.Infrastructure.Services
 {
@@ -44,9 +45,9 @@ namespace ReservationService.Infrastructure.Services
         {
             using var scope = _scopeFactory.CreateScope();
 
+            var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
             var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var messageBroker = scope.ServiceProvider.GetRequiredService<IMessageBroker>();
 
             var messages = await outboxRepository.GetUnpublishedMessagesAsync(_batchSize, cancellationToken);
 
@@ -59,14 +60,14 @@ namespace ReservationService.Infrastructure.Services
             {
                 try
                 {
-                    await messageBroker.PublishAsync(message.EventType, message.Payload, cancellationToken);
+                    var eventType = Type.GetType($"ReservationService.Domain.Events.{message.EventType}");
+                    var domainEvent = JsonSerializer.Deserialize(message.Payload, eventType);
+
+                    await publishEndpoint.Publish(domainEvent, cancellationToken);
 
                     message.MarkAsPublished();
                     
                     await outboxRepository.UpdateAsync(message,cancellationToken);
-
-                    _logger.LogDebug("Published message {MessageId} of type {EventType}",
-                    message.Id, message.EventType);
                 }
                 catch (Exception ex)
                 {

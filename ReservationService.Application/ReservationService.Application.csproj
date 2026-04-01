@@ -16,4 +16,8 @@
     <ProjectReference Include="..\ReservationService.Domain\ReservationService.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
+  </ItemGroup>
+
 </Project>
