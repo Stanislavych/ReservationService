@@ -1,4 +1,6 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http;
+using ReservationService.Application.Base;
 using ReservationService.Application.DTOs;
 using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Common;
@@ -8,12 +10,24 @@ namespace ReservationService.Application.Commands.Reservation
 {
     public record ConfirmReservationCommand(int Id, long Version) : IRequest<ReservationDto>
     {
-        public class Handler(IReservationUpdateService reservationUpdateService, IUnitOfWork unitOfWork, IOutboxRepository outboxRepository) 
-            : IRequestHandler<ConfirmReservationCommand, ReservationDto>
+        public class Handler : BaseHandler<ConfirmReservationCommand, ReservationDto>
         {
-            public async Task<ReservationDto> Handle(ConfirmReservationCommand request, CancellationToken cancellationToken)
+            private readonly IReservationUpdateService _reservationUpdateService;
+            private readonly IUnitOfWork _unitOfWork;
+            private readonly IOutboxRepository _outboxRepository;
+
+            public Handler(IReservationUpdateService reservationUpdateService, IUnitOfWork unitOfWork,
+                IOutboxRepository outboxRepository, IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
             {
-                var reservation = await reservationUpdateService.ConfirmAsync(request.Id, request.Version, cancellationToken);
+                _reservationUpdateService = reservationUpdateService;
+                _unitOfWork = unitOfWork;
+                _outboxRepository = outboxRepository;
+            }
+            public override async Task<ReservationDto> Handle(ConfirmReservationCommand request, CancellationToken cancellationToken)
+            {
+                var currentUserId = GetCurrentUserId();
+                var currentUserRole = GetCurrentUserRole();
+                var reservation = await _reservationUpdateService.ConfirmAsync(request.Id, request.Version, currentUserId, currentUserRole, cancellationToken);
 
                 foreach (var @event in reservation.DomainEvents)
                 {
@@ -24,10 +38,10 @@ namespace ReservationService.Application.Commands.Reservation
                             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                         }));
 
-                    await outboxRepository.AddAsync(outboxMessage, cancellationToken);
+                    await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
                 }
 
-                await unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 reservation.ClearDomainEvents();
 

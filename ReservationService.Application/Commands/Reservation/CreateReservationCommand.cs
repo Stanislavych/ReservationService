@@ -1,4 +1,6 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http;
+using ReservationService.Application.Base;
 using ReservationService.Application.DTOs;
 using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Common;
@@ -10,10 +12,20 @@ namespace ReservationService.Application.Commands.Reservation
     public record CreateReservationCommand(string Name, int GuestsCount, DateTime StartTime,
         DateTime EndTime, string Wish, int TableId, int UserId) : IRequest<ReservationDto>
     {
-        public class Handler(IReservationRepository reservationRepository, IUnitOfWork unitOfWork,
-            IReservationCreationService _reservationCreationService, IOutboxRepository outboxRepository)
-            : IRequestHandler<CreateReservationCommand, ReservationDto>
+        public class Handler : IRequestHandler<CreateReservationCommand, ReservationDto>
         {
+            private readonly IReservationCreationService _reservationCreationService;
+            private readonly IUnitOfWork _unitOfWork;
+            private readonly IOutboxRepository _outboxRepository;
+            private readonly IReservationRepository _reservationRepository;
+
+            public Handler(IUnitOfWork unitOfWork, IOutboxRepository outboxRepository, IReservationRepository reservationRepository, IReservationCreationService reservationCreationService)
+            {
+                _unitOfWork = unitOfWork;
+                _outboxRepository = outboxRepository;
+                _reservationRepository = reservationRepository;
+                _reservationCreationService = reservationCreationService;
+            }
             public async Task<ReservationDto> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
             {
                 var timeRange = TimeRange.Create(request.StartTime, request.EndTime);
@@ -29,7 +41,7 @@ namespace ReservationService.Application.Commands.Reservation
                     cancellationToken
                     );
 
-               await reservationRepository.AddAsync(reservation, cancellationToken);
+               await _reservationRepository.AddAsync(reservation, cancellationToken);
 
                 foreach (var @event in reservation.DomainEvents)
                 {
@@ -40,10 +52,10 @@ namespace ReservationService.Application.Commands.Reservation
                             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                         }));
 
-                    await outboxRepository.AddAsync(outboxMessage, cancellationToken);
+                    await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
                 }
 
-                await unitOfWork.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 reservation.ClearDomainEvents();
 
