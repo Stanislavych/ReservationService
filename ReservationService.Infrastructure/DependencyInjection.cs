@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Extensions.Http;
 using ReservationService.Application.Interfaces;
 using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Services;
@@ -29,7 +31,7 @@ namespace ReservationService.Infrastructure
             services.AddScoped<ITableRepository, TableRepository>();
             services.AddScoped<IReservationRepository, ReservationRepository>();
             services.AddScoped<IOutboxRepository, OutboxRepository>();
-            services.AddScoped<IUnitOfWork,UnitOfWork>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
 
             services.AddHostedService<OutboxPublisher>();
@@ -66,7 +68,7 @@ namespace ReservationService.Infrastructure
                 catch (Exception ex)
                 {
                     var logger = services.BuildServiceProvider().GetService<ILogger<RedisCacheService>>();
-                    
+
                     logger?.LogError(ex, "Failed to connect to Redis. Falling back to MemoryCache only.");
 
                     services.AddSingleton<ICacheService, MemoryCacheService>();
@@ -77,7 +79,38 @@ namespace ReservationService.Infrastructure
                 services.AddSingleton<ICacheService, MemoryCacheService>();
             }
 
+            services.Configure<PaymentServiceSettings>(configuration.GetSection("PaymentService"));
+
+            services.AddHttpClient<IPaymentServiceClient, PaymentServiceClient>((serviceProvider, client) =>
+            {
+                var settings = configuration.GetSection("PaymentService").Get<PaymentServiceSettings>();
+
+                if (settings != null)
+                {
+                    client.BaseAddress = new Uri(settings.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds);
+                }
+            })
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
+
             return services;
+        }
+
+        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .Or<TimeoutException>()
+                .WaitAndRetryAsync(3, retryAttempt =>
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+        }
+
+        private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+        {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
         }
     }
 }

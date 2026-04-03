@@ -31,11 +31,11 @@ namespace ReservationService.Infrastructure.Data.Repositories
                 UPDATE ""Reservations""
                 SET 
                     ""Name"" = {0},
-                    ""GuestsCount"" = {1},
-                    ""ReservationStart"" = {2},
-                    ""ReservationEnd"" = {3},
+                    guests_count = {1},
+                    start_time = {2},
+                    end_time = {3},
                     ""Wish"" = {4},
-                    ""Status"" = {5},
+                    status = {5},
                     ""Version"" = {6}
                 WHERE ""Id"" = {7} AND ""Version"" = {8}";
 

@@ -12,6 +12,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      paymentservice:
+        condition: service_started
     ports:
       - "8080:8080"
     environment:
@@ -23,6 +25,8 @@ services:
       - RabbitMQ__UserName=admin
       - RabbitMQ__Password=admin
       - Redis__ConnectionString=redis:6379
+      - PaymentService__BaseUrl=http://paymentservice:8080
+      - PaymentService__Enabled=true 
   
   postgres:
     image: postgres:latest
@@ -70,6 +74,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  paymentservice:
+    build:
+      context: ./PaymentService
+      dockerfile: Dockerfile
+    container_name: paymentservice
+    ports:
+      - "8081:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
 
 volumes:
   db-data:

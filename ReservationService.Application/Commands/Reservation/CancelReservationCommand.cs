@@ -4,6 +4,7 @@ using ReservationService.Application.Base;
 using ReservationService.Application.DTOs;
 using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Common;
+using ReservationService.Domain.Exceptions;
 using System.Text.Json;
 
 namespace ReservationService.Application.Commands.Reservation
@@ -15,13 +16,15 @@ namespace ReservationService.Application.Commands.Reservation
             private readonly IReservationUpdateService _reservationUpdateService;
             private readonly IUnitOfWork _unitOfWork;
             private readonly IOutboxRepository _outboxRepository;
+            private readonly IReservationRepository _reservationRepository;
 
             public Handler(IReservationUpdateService reservationUpdateService, IUnitOfWork unitOfWork,
-                IOutboxRepository outboxRepository, IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
+                IOutboxRepository outboxRepository, IHttpContextAccessor httpContextAccessor, IReservationRepository reservationRepository) : base(httpContextAccessor)
             {
                 _reservationUpdateService = reservationUpdateService;
                 _unitOfWork = unitOfWork;
                 _outboxRepository = outboxRepository;
+                _reservationRepository = reservationRepository;
             }
 
             public override async Task<ReservationDto> Handle(CancelReservationCommand request, CancellationToken cancellationToken)
@@ -29,9 +32,14 @@ namespace ReservationService.Application.Commands.Reservation
 
                 var currentUserId = GetCurrentUserId();
                 var currentUserRole = GetCurrentUserRole();
-                var reservation = await _reservationUpdateService.CancelAsync(request.Id, request.Version, currentUserId, currentUserRole, cancellationToken);
+                var reservation = await _reservationRepository.GetByIdAsync(request.Id, cancellationToken);
 
-                foreach (var @event in reservation.DomainEvents)
+                if (reservation == null)
+                    throw new NotFoundException($"Reservation {request.Id} not found");
+
+                var cancelledReservation = await _reservationUpdateService.CancelAsync(reservation, request.Version, currentUserId, currentUserRole, cancellationToken);
+
+                foreach (var @event in cancelledReservation.DomainEvents)
                 {
                     var outboxMessage = new OutboxMessage(
                         @event.GetType().Name,
@@ -45,19 +53,19 @@ namespace ReservationService.Application.Commands.Reservation
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                reservation.ClearDomainEvents();
+                cancelledReservation.ClearDomainEvents();
 
                 return new ReservationDto(
-                    reservation.Id,
-                    reservation.Name,
-                    reservation.GuestsCount.Value,
-                    reservation.ReservationTime.Start,
-                    reservation.ReservationTime.End,
-                    reservation.Wish,
-                    reservation.Status.ToString(),
-                    reservation.TableId,
-                    reservation.UserId,
-                    reservation.Version
+                    cancelledReservation.Id,
+                    cancelledReservation.Name,
+                    cancelledReservation.GuestsCount.Value,
+                    cancelledReservation.ReservationTime.Start,
+                    cancelledReservation.ReservationTime.End,
+                    cancelledReservation.Wish,
+                    cancelledReservation.Status.ToString(),
+                    cancelledReservation.TableId,
+                    cancelledReservation.UserId,
+                    cancelledReservation.Version
                     );
             }
         }

@@ -5,6 +5,7 @@
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>
+  <Project Path="PaymentService/PaymentService.csproj" />
   <Project Path="ReservationService.Application/ReservationService.Application.csproj" />
   <Project Path="ReservationService.Domain/ReservationService.Domain.csproj" />
   <Project Path="ReservationService.Infrastructure/ReservationService.Infrastructure.csproj" />

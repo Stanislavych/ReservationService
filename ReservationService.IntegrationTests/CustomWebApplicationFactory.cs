@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReservationService.Infrastructure.Data;
+using ReservationService.Infrastructure.Data.Configurations;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -30,6 +32,16 @@ namespace ReservationService.IntegrationTests
 
                 services.AddDbContext<ApplicationDbContext>(options =>
                     options.UseNpgsql(_postgresContainer.GetConnectionString()));
+
+                services.AddAuthentication(defaultScheme: "Test")
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
+
+                services.Configure<PaymentServiceSettings>(options =>
+                {
+                    options.BaseUrl = "http://localhost:8081";
+                    options.Enabled = true;
+                    options.TimeoutSeconds = 30;
+                });
             });
         }
 

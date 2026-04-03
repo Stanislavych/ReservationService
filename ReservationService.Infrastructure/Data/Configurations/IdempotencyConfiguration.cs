@@ -30,6 +30,7 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .IsRequired();
 
             builder.Property(x => x.ErrorMessage)
+                .IsRequired(false)
                 .HasMaxLength(1000);
 
             builder.Property(x => x.CreatedAt)

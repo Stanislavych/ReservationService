@@ -29,6 +29,9 @@ namespace ReservationService.Infrastructure.Data.Configurations
             entity.Property(x => x.RetryCount)
                 .IsRequired();
 
+            entity.Property(x => x.Error)
+                .IsRequired(false);
+
             entity.HasIndex(x => new { x.IsPublished, x.CreatedAt })
                 .HasDatabaseName("IX_OutboxMessages_Unpublished");
         }

@@ -42,10 +42,11 @@ namespace ReservationService.IntegrationTests.Utilities
             int tableId,
             int userId,
             int guestsCount = 2,
-            DateTime? startTime = null)
+            DateTime? startTime = null,
+            string idempotencyKey = null)
         {
             var start = startTime ?? DateTime.UtcNow.AddHours(1);
-            var key = Guid.NewGuid().ToString();
+            var key = idempotencyKey ?? Guid.NewGuid().ToString();
 
             return new CreateReservationCommand(
                 Name: "Test Reservation",
@@ -54,9 +55,8 @@ namespace ReservationService.IntegrationTests.Utilities
                 EndTime: start.AddHours(2),
                 Wish: "",
                 TableId: tableId,
-                UserId: userId,
-                IdempotencyKey: key)
-            { IdempotencyKey = key };
+                UserId: userId)
+                { IdempotencyKey = key};
         }
     }
 }

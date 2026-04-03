@@ -26,7 +26,7 @@
             StatusCode = statusCode;
             CreatedAt = DateTime.UtcNow;
             ProcessedAt = DateTime.UtcNow;
-            ErrorMessage = errorMessage;
+            ErrorMessage = errorMessage ?? string.Empty;
             IsSuccessful = isSuccessful;
         }
     }
