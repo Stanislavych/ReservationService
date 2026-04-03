@@ -20,11 +20,13 @@ namespace ReservationService.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ReservationDto>> CreateReservation([FromBody]CreateReservationCommand command)
+        public async Task<ActionResult<ReservationDto>> CreateReservation([FromBody]CreateReservationCommand command,
+            [FromHeader(Name = "Idempotency-Key")] string idempotencyKey)
         {
-            var result = await _mediator.Send(command);
+            var commandWithKey = command with { IdempotencyKey = idempotencyKey };
+            var result = await _mediator.Send(commandWithKey);
 
-            return Ok(result);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
         [HttpPatch("{id}/confirm")]

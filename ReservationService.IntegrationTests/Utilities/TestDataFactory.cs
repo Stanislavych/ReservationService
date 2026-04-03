@@ -1,12 +1,10 @@
-﻿using MassTransit.Saga;
-using ReservationService.Application.Commands.Reservation;
+﻿using ReservationService.Application.Commands.Reservation;
 using ReservationService.Domain.Reservations.ValueObjects;
 using ReservationService.Domain.Tables;
 using ReservationService.Domain.Tables.Enums;
 using ReservationService.Domain.Tables.ValueObjects;
 using ReservationService.Domain.Users;
 using ReservationService.Domain.Users.ValueObjects;
-using System.ComponentModel.DataAnnotations;
 
 namespace ReservationService.IntegrationTests.Utilities
 {
@@ -47,6 +45,8 @@ namespace ReservationService.IntegrationTests.Utilities
             DateTime? startTime = null)
         {
             var start = startTime ?? DateTime.UtcNow.AddHours(1);
+            var key = Guid.NewGuid().ToString();
+
             return new CreateReservationCommand(
                 Name: "Test Reservation",
                 GuestsCount: guestsCount,
@@ -54,7 +54,9 @@ namespace ReservationService.IntegrationTests.Utilities
                 EndTime: start.AddHours(2),
                 Wish: "",
                 TableId: tableId,
-                UserId: userId);
+                UserId: userId,
+                IdempotencyKey: key)
+            { IdempotencyKey = key };
         }
     }
 }

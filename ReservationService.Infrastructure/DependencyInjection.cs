@@ -30,6 +30,7 @@ namespace ReservationService.Infrastructure
             services.AddScoped<IReservationRepository, ReservationRepository>();
             services.AddScoped<IOutboxRepository, OutboxRepository>();
             services.AddScoped<IUnitOfWork,UnitOfWork>();
+            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
 
             services.AddHostedService<OutboxPublisher>();
 

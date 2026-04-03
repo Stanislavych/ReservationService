@@ -10,7 +10,7 @@ using System.Text.Json;
 namespace ReservationService.Application.Commands.Reservation
 {
     public record CreateReservationCommand(string Name, int GuestsCount, DateTime StartTime,
-        DateTime EndTime, string Wish, int TableId, int UserId) : IRequest<ReservationDto>
+        DateTime EndTime, string Wish, int TableId, int UserId, string IdempotencyKey) : IdempotentCommand<ReservationDto>
     {
         public class Handler : IRequestHandler<CreateReservationCommand, ReservationDto>
         {
