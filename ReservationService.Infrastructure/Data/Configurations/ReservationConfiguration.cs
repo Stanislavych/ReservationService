@@ -56,6 +56,11 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasDefaultValue(1);
 
+            entity.Property(r => r.CreatedAt)
+                .IsRequired()
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
             entity.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(r => r.UserId)

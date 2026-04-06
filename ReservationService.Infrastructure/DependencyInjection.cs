@@ -33,8 +33,12 @@ namespace ReservationService.Infrastructure
             services.AddScoped<IOutboxRepository, OutboxRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
+            services.AddScoped<IExpiredBookingCancellationService, ExpiredBookingCancellationService>();
 
             services.AddHostedService<OutboxPublisher>();
+            services.AddHostedService<ExpiredBookingBackgroundService>();
+
+            services.Configure<ExpiredBookingSettings>(configuration.GetSection("ExpiredBooking"));
 
             var redisSettings = configuration.GetSection("Redis").Get<RedisSettings>();
             var cacheSettings = configuration.GetSection("Cache").Get<CacheSettings>();

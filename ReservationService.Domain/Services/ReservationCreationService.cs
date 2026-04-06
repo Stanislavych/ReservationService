@@ -38,7 +38,7 @@ namespace ReservationService.Domain.Services
             if (hasConflicts)
                 throw new DomainException($"Table is not available at the requested time");
 
-            return new Reservation(name, guestsCount, timeRange, wish, tableId, userId);
+            return new Reservation(name, guestsCount, timeRange, wish, tableId, userId, DateTime.UtcNow);
         }
     }
 }

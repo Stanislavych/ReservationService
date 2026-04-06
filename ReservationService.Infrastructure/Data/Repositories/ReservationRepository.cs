@@ -13,6 +13,14 @@ namespace ReservationService.Infrastructure.Data.Repositories
                
         }
 
+        public async Task<IEnumerable<Reservation>> GetExpiredPendingPaymentsAsync(DateTime cutoffTime, CancellationToken cancellationToken = default)
+        {
+            return await _context.Reservations
+                .Where(r => r.Status == ReservationStatus.PendingPayment)
+                .Where(r => r.CreatedAt < cutoffTime)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<bool> HasConflictingReservationsAsync(int tableId, TimeRange timeRange, CancellationToken cancellationToken = default)
         {
             return await _context.Reservations

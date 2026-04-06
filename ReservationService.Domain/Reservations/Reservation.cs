@@ -14,6 +14,7 @@ namespace ReservationService.Domain.Reservations
         public TimeRange ReservationTime { get; private set; } = null!;
         public string Wish { get; private set; } = string.Empty;
         public ReservationStatus Status { get; private set; }
+        public DateTime CreatedAt { get; private set; }
 
         public int TableId { get; private set; }
         public int UserId { get; private set; }
@@ -25,7 +26,7 @@ namespace ReservationService.Domain.Reservations
 
         }
 
-        internal Reservation(string name, GuestsCount guestsCount, TimeRange timeRange, string wish, int tableId, int userId)
+        internal Reservation(string name, GuestsCount guestsCount, TimeRange timeRange, string wish, int tableId, int userId, DateTime createdAt)
         {
             if (guestsCount == null)
                 throw new DomainException("GuestsCount is required");
@@ -45,6 +46,7 @@ namespace ReservationService.Domain.Reservations
             TableId = tableId;
             UserId = userId;
             Status = ReservationStatus.PendingPayment;
+            CreatedAt = createdAt;
 
             AddDomainEvent(new ReservationCreated(
                 Id,
