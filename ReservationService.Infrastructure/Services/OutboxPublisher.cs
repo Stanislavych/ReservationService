@@ -24,7 +24,9 @@ namespace ReservationService.Infrastructure.Services
         {
             _logger.LogInformation("Outbox Publisher started");
 
-            while(!stoppingToken.IsCancellationRequested)
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(_intervalSeconds));
+
+            while(!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
             {
                 try
                 {
@@ -34,8 +36,6 @@ namespace ReservationService.Infrastructure.Services
                 {
                     _logger.LogError(ex, "Error processing outbox messages");
                 }
-
-                await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds),stoppingToken);
             }
 
             _logger.LogInformation("Outbox Publisher stopped");

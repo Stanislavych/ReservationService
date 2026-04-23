@@ -36,8 +36,10 @@ namespace ReservationService.Application.Commands.Reservation
 
                 if (reservation == null)
                     throw new NotFoundException($"Reservation {request.Id} not found");
+                if (currentUserRole == "Customer" && reservation.UserId != currentUserId)
+                    throw new UnauthorizedAccessException("You don't have permission to modify this reservation");
 
-                var cancelledReservation = await _reservationUpdateService.CancelAsync(reservation, request.Version, currentUserId, currentUserRole, cancellationToken);
+                var cancelledReservation = await _reservationUpdateService.CancelAsync(reservation, request.Version, cancellationToken);
 
                 foreach (var @event in cancelledReservation.DomainEvents)
                 {
@@ -51,9 +53,9 @@ namespace ReservationService.Application.Commands.Reservation
                     await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
                 }
 
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
                 cancelledReservation.ClearDomainEvents();
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 return new ReservationDto(
                     cancelledReservation.Id,

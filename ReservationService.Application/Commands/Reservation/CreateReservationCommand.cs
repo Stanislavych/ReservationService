@@ -55,9 +55,9 @@ namespace ReservationService.Application.Commands.Reservation
                     await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
                 }
 
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
                 reservation.ClearDomainEvents();
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 return new ReservationDto(
                     reservation.Id,

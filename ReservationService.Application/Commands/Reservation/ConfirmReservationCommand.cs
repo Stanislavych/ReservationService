@@ -39,11 +39,13 @@ namespace ReservationService.Application.Commands.Reservation
 
                 if (reservation == null)
                     throw new NotFoundException($"Reservation {request.Id} not found");
+                if (currentUserRole == "Customer" && reservation.UserId != currentUserId)
+                    throw new UnauthorizedAccessException("You don't have permission to modify this reservation");
 
                 var paymentRequest = new PaymentRequest
                 {
                     ReservationId = reservation.Id,
-                    UserId = reservation.Id,
+                    UserId = reservation.UserId,
                     Amount = CalculateAmount(reservation),
                     Currency = "RUB",
                     PaymentMethod = "card"
@@ -54,7 +56,7 @@ namespace ReservationService.Application.Commands.Reservation
                 if (!paymentResponse.IsSuccessful)
                     throw new DomainException($"Payment failed: {paymentResponse.Message}");
 
-                var updatedReservation = await _reservationUpdateService.ConfirmAsync(reservation, request.Version, currentUserId, currentUserRole, cancellationToken);
+                var updatedReservation = await _reservationUpdateService.ConfirmAsync(reservation, request.Version, cancellationToken);
 
                 foreach (var @event in updatedReservation.DomainEvents)
                 {
@@ -68,9 +70,9 @@ namespace ReservationService.Application.Commands.Reservation
                     await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
                 }
 
-                await _unitOfWork.SaveChangesAsync();
-
                 updatedReservation.ClearDomainEvents();
+
+                await _unitOfWork.SaveChangesAsync();
 
                 return new ReservationDto(
                     updatedReservation.Id,

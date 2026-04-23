@@ -26,7 +26,9 @@ namespace ReservationService.Infrastructure.Services
         {
             _logger.LogInformation("Expired Booking Background Service started.");
 
-            while (!stoppingToken.IsCancellationRequested)
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(_checkIntervalSeconds));
+
+            while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
             {
                 try
                 {
@@ -39,8 +41,6 @@ namespace ReservationService.Infrastructure.Services
                 {
                     _logger.LogError(ex, "Error occured while checking expired bookings");
                 }
-
-                await Task.Delay(TimeSpan.FromSeconds(_checkIntervalSeconds), stoppingToken);
             }
 
             _logger.LogInformation("Expired Booking Service stopped.");

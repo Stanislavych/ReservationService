@@ -1,7 +1,6 @@
 ﻿using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Exceptions;
 using ReservationService.Domain.Reservations;
-using System.Data;
 
 namespace ReservationService.Domain.Services
 {
@@ -14,25 +13,21 @@ namespace ReservationService.Domain.Services
             _reservationRepository = reservationRepository;
         }
 
-        public Task<Reservation> CancelAsync(Reservation reservation, long version, int currentUserId, string currentUserRole, CancellationToken cancellationToken)
-        => ExecuteUpdateAsync(reservation, version, currentUserId, currentUserRole, r => r.Cancel(), cancellationToken);
+        public Task<Reservation> CancelAsync(Reservation reservation, long version, CancellationToken cancellationToken)
+        => ExecuteUpdateAsync(reservation, version, r => r.Cancel(), cancellationToken);
 
-        public Task<Reservation> CompleteAsync(Reservation reservation, long version, int currentUserId, string currentUserRole, CancellationToken cancellationToken)
-        => ExecuteUpdateAsync(reservation, version, currentUserId, currentUserRole, r => r.Complete(), cancellationToken);
+        public Task<Reservation> CompleteAsync(Reservation reservation, long version, CancellationToken cancellationToken)
+        => ExecuteUpdateAsync(reservation, version, r => r.Complete(), cancellationToken);
 
-        public Task<Reservation> ConfirmAsync(Reservation reservation, long version, int currentUserId, string currentUserRole, CancellationToken cancellationToken)
-        => ExecuteUpdateAsync(reservation, version, currentUserId, currentUserRole, r => r.Confirm(), cancellationToken);
+        public Task<Reservation> ConfirmAsync(Reservation reservation, long version, CancellationToken cancellationToken)
+        => ExecuteUpdateAsync(reservation, version, r => r.Confirm(), cancellationToken);
 
         private async Task<Reservation> ExecuteUpdateAsync(
             Reservation reservation,
             long version,
-            int currentUserId,
-            string currentUserRole,
             Action<Reservation> operation,
             CancellationToken cancellationToken)
         {
-            if (currentUserRole == "Customer" && reservation.UserId != currentUserId)
-                throw new UnauthorizedAccessException("You don't have permission to modify this reservation");
             if (reservation.Version != version)
                 throw new ConcurrencyException("Reservation was modified by another user. Please reload and try again.");
 

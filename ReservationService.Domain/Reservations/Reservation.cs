@@ -86,7 +86,7 @@ namespace ReservationService.Domain.Reservations
         public void Complete()
         {
             if (Status != ReservationStatus.Confirmed)
-                throw new InvalidOperationException("Only confirmed reservation can be complited");
+                throw new InvalidOperationException("Only confirmed reservation can be completed");
 
             Status = ReservationStatus.Completed;
 

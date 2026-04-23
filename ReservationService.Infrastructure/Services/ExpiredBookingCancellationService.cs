@@ -1,11 +1,9 @@
-﻿using MassTransit.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ReservationService.Application.Interfaces;
 using ReservationService.Domain.Abstractions;
 using ReservationService.Domain.Common;
 using ReservationService.Infrastructure.Data.Configurations;
-using System.ComponentModel;
 using System.Text.Json;
 
 namespace ReservationService.Infrastructure.Services
@@ -54,14 +52,9 @@ namespace ReservationService.Infrastructure.Services
             {
                 try
                 {
-                    const int systemUserId = 0;
-                    const string systemUserRole = "System";
-
                     var cancelledBooking = await _reservationUpdateService.CancelAsync(
                         booking,
                         booking.Version,
-                        systemUserId,
-                        systemUserRole,
                         cancellationToken);
 
                     foreach (var @event in cancelledBooking.DomainEvents)
@@ -75,10 +68,10 @@ namespace ReservationService.Infrastructure.Services
 
                         await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
                     }
+                    
+                    cancelledBooking.ClearDomainEvents();
 
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                    cancelledBooking.ClearDomainEvents();
 
                     _logger.LogInformation("Successfully cancelled expired booking {BookingId}", booking.Id);
                 }
