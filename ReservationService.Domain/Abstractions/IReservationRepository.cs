@@ -6,5 +6,7 @@ namespace ReservationService.Domain.Abstractions
     public interface IReservationRepository : IRepository<Reservation>
     {
         Task<bool> HasConflictingReservationsAsync(int tableId, TimeRange timeRange, CancellationToken cancellationToken = default);
+        Task<bool> UpdateWithVersionAsync(Reservation reservation, long expectedVersion, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Reservation>> GetExpiredPendingPaymentsAsync(DateTime cutoffTime, CancellationToken cancellationToken = default);
     }
 }

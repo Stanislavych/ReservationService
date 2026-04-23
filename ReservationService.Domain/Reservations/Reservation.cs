@@ -1,4 +1,6 @@
 ﻿using ReservationService.Domain.Common;
+using ReservationService.Domain.Events;
+using ReservationService.Domain.Exceptions;
 using ReservationService.Domain.Reservations.Enums;
 using ReservationService.Domain.Reservations.ValueObjects;
 
@@ -12,30 +14,50 @@ namespace ReservationService.Domain.Reservations
         public TimeRange ReservationTime { get; private set; } = null!;
         public string Wish { get; private set; } = string.Empty;
         public ReservationStatus Status { get; private set; }
+        public DateTime CreatedAt { get; private set; }
 
         public int TableId { get; private set; }
         public int UserId { get; private set; }
+
+        public long Version { get; private set; } = 1;
 
         private Reservation()
         {
 
         }
 
-        public static Reservation Create(string name, GuestsCount guestsCount, TimeRange timeRange, string wish, int tableId, int userId)
+        internal Reservation(string name, GuestsCount guestsCount, TimeRange timeRange, string wish, int tableId, int userId, DateTime createdAt)
         {
+            if (guestsCount == null)
+                throw new DomainException("GuestsCount is required");
+            if (timeRange == null)
+                throw new DomainException("TimeRange is required");
             if (string.IsNullOrWhiteSpace(name))
-                throw new Exception("Name is required");
+                throw new DomainException("Name is required");
+            if (tableId <= 0)
+                throw new DomainException("TableId is required");
+            if (userId <= 0)
+                throw new DomainException("UserId is required");
 
-            return new Reservation
-            {
-                Name = name,
-                GuestsCount = guestsCount,
-                ReservationTime = timeRange,
-                Wish = wish ?? string.Empty,
-                TableId = tableId,
-                UserId = userId,
-                Status = ReservationStatus.PendingPayment
-            };
+            Name = name;
+            GuestsCount = guestsCount;
+            ReservationTime = timeRange;
+            Wish = wish ?? string.Empty;
+            TableId = tableId;
+            UserId = userId;
+            Status = ReservationStatus.PendingPayment;
+            CreatedAt = createdAt;
+
+            AddDomainEvent(new ReservationCreated(
+                Id,
+                Name,
+                GuestsCount.Value,
+                ReservationTime.Start,
+                ReservationTime.End,
+                Wish,
+                TableId,
+                UserId,
+                Status));
         }
 
         public void Confirm()
@@ -44,6 +66,8 @@ namespace ReservationService.Domain.Reservations
                 throw new InvalidOperationException("Can only confirm pending payment reservations");
 
             Status = ReservationStatus.Confirmed;
+
+            AddDomainEvent(new ReservationConfirmed(Id, DateTime.UtcNow, Status));
         }
 
         public void Cancel()
@@ -51,18 +75,27 @@ namespace ReservationService.Domain.Reservations
             if (Status == ReservationStatus.Cancelled)
                 return;
 
-            if(Status == ReservationStatus.Completed)
+            if (Status == ReservationStatus.Completed)
                 throw new InvalidOperationException("Cannot cancel completed reservation");
 
             Status = ReservationStatus.Cancelled;
+
+            AddDomainEvent(new ReservationCancelled(Id, DateTime.UtcNow, Status));
         }
 
         public void Complete()
         {
             if (Status != ReservationStatus.Confirmed)
-                throw new InvalidOperationException("Only confirmed reservation can be complited");
+                throw new InvalidOperationException("Only confirmed reservation can be completed");
 
             Status = ReservationStatus.Completed;
+
+            AddDomainEvent(new ReservationCompleted(Id, DateTime.UtcNow, Status));
+        }
+
+        public void IncrementVersion()
+        {
+            Version++;
         }
     }
 }

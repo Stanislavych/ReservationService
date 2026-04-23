@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using ReservationService.Application.Behaviors;
 
 namespace ReservationService.Application
 {
@@ -6,7 +8,13 @@ namespace ReservationService.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+
+                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(IdempotentBehavior<,>));
+            });
+
 
             return services;
         }

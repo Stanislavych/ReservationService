@@ -52,6 +52,15 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasColumnName("table_id");
 
+            entity.Property(r => r.Version)
+                .IsRequired()
+                .HasDefaultValue(1);
+
+            entity.Property(r => r.CreatedAt)
+                .IsRequired()
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
             entity.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
@@ -61,9 +70,6 @@ namespace ReservationService.Infrastructure.Data.Configurations
                 .WithMany()
                 .HasForeignKey(r => r.TableId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            entity.Property<DateTime>("start_time");
-            entity.HasIndex("TableId", "start_time");
 
             entity.ToTable(t => t.HasCheckConstraint("CK_Reservation_EndTime", "end_time > start_time"));
             entity.ToTable(t => t.HasCheckConstraint("CK_Reservation_GuestsCount", "guests_count > 0"));

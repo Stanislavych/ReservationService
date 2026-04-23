@@ -1,6 +1,21 @@
-﻿namespace ReservationService.Domain.Common
+﻿using ReservationService.Domain.Abstractions;
+
+namespace ReservationService.Domain.Common
 {
     public abstract class AggregateRoot
     {
+        private readonly List<IDomainEvent> _domainEvents = new();
+        
+        public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+        protected void AddDomainEvent(IDomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+        }
+
+        public void ClearDomainEvents()
+        {
+            _domainEvents.Clear();
+        }
     }
 }

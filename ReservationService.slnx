@@ -1,6 +1,14 @@
 <Solution>
+  <Folder Name="/tests/">
+    <Project Path="ReservationService.IntegrationTests/ReservationService.IntegrationTests.csproj" Id="bd332a85-c3a7-4387-819b-da55d7e4a6ee" />
+  </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
+  <Project Path="PaymentService/PaymentService.csproj" />
   <Project Path="ReservationService.Application/ReservationService.Application.csproj" />
   <Project Path="ReservationService.Domain/ReservationService.Domain.csproj" />
   <Project Path="ReservationService.Infrastructure/ReservationService.Infrastructure.csproj" />
+  <Project Path="ReservationService.Tests.Unit/ReservationService.Tests.Unit.csproj" />
   <Project Path="ReservationService/ReservationService.csproj" />
 </Solution>

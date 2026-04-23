@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ReservationService.Domain.Common;
 using ReservationService.Domain.Reservations;
 using ReservationService.Domain.Tables;
 using ReservationService.Domain.Users;
@@ -11,6 +12,8 @@ namespace ReservationService.Infrastructure.Data
         public DbSet<Table> Tables { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
+        public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base (options)
         {
@@ -24,6 +27,8 @@ namespace ReservationService.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new TableConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new ReservationConfiguration());
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+            modelBuilder.ApplyConfiguration(new IdempotencyConfiguration());
         }
     }
 }
